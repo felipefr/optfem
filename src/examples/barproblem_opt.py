@@ -32,29 +32,4 @@ class barProblemOptimiser(optimisationProblem):
         # J = 0.5*np.linalg.norm(pred - self.targets)**2 # equivalent option
         
         return J
-    
-class barProblemOptimiser_withJacobian(barProblemOptimiser):
-    
-    def __init__(self, fp, targets, controledDofs):
-        super(barProblemOptimiser_withJacobian, 
-                                    self).__init__(fp, targets, controledDofs)
-                                    
-        LSaux = self.fp.LS
-        LSaux.assembly(np.array([0.0,0.0,1.0]))
-        LSaux.applyDirichletBCs(self.fp.BCs)
-        
-        self.rhs_adj = LSaux.A@LSaux.b # matrix x vector multiplication 
-        
-    def jacobian(self, newparam):
-        
-        # Notice the LS will be assembled for fp after next line
-        pred = self.getMeasurements(newparam) 
-        
-        self.fp.LS.b[:] = self.rhs_adj[:]
-        y = self.fp.LS.solve() 
-        
-        i1, i2, i3 = self.controledDofs
-        X = self.fp.Vh.mesh.X
-        jac = - y[i2]*(pred[0] - self.targets[0])/(X[i2] - X[i1])
-        
-        return jac
+
